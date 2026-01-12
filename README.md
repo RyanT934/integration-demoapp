@@ -137,9 +137,8 @@ exemple :
 
 ## Cron job syntax
 
-The cron daemon uses the following syntax:
-
-```text
+```md
+<pre>
 .---------------- minute (0 - 59)
 |  .------------- hour (0 - 23)
 |  |  .---------- day of month (1 - 31)
@@ -147,7 +146,7 @@ The cron daemon uses the following syntax:
 |  |  |  |  .---- day of week (0 - 6) (Sunday=0 or 7)
 |  |  |  |  |
 *  *  *  *  *  command to be executed
-
+</pre>
 
 (grep -v '^#' /opt/app/demoapp/.env | xargs)
 Cette commande permet de charger les variables d’environnement depuis un fichier .env, en excluant les lignes de commentaires, afin de les rendre disponibles pour l’exécution du batch.
