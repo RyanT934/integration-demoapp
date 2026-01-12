@@ -105,6 +105,8 @@ sudo apt install -y fail2ban
 sudo cp /etc/fail2ban/jail.conf /etc/fail2ban/jail.local
 sudo nano /etc/fail2ban/jail.local
 ```
+On ne doit pas modifier directement le fichier .conf
+
 #### Configuration SSH recommandée :
 ```ini
 [sshd]
@@ -140,9 +142,14 @@ sudo systemctl status postgresql
 ### Création de l’utilisateur et de la base
 ```bash
 sudo -i -u postgres
+```
+```
 createuser demoapp_user
+```
+```
 createdb demoapp_db -O demoapp_user
-psql
+```
+```psql
 ALTER USER demoapp_user WITH PASSWORD '********';
 \q
 exit
