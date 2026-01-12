@@ -52,87 +52,94 @@ Ce projet met en avant des bonnes pratiques d’administration système, de séc
 
 ## Mise à jour du système
 
-```bash
+```
 sudo apt upgrade -y
-Configuration SSH
-Installation et activation
-bash
-Copier le code
+```
+---
+## Configuration SSH
+
+### Installation et activation
+```bash
 sudo apt install -y openssh-server
+```
+```bash
 sudo systemctl enable ssh
 sudo systemctl start ssh
-Génération de clé SSH (poste client)
-bash
-Copier le code
+```
+
+### Génération de clé SSH (poste client)
+```bash
 ssh-keygen -t ed25519 -C "appadmin@integration-demo"
-Déploiement de la clé sur le serveur
-bash
-Copier le code
+```
+### Déploiement de la clé sur le serveur
+```bash
 mkdir -p ~/.ssh
 chmod 700 ~/.ssh
+```
+
+```bash
 nano ~/.ssh/authorized_keys
 chmod 600 ~/.ssh/authorized_keys
+```
 Durcissement de la configuration SSH
-bash
-Copier le code
+```bash
 sudo nano /etc/ssh/sshd_config
+```
 Paramètres à modifier :
-
-ini
-Copier le code
+```
 PasswordAuthentication no
 PermitRootLogin no
 PubkeyAuthentication yes
-Validation et rechargement
-bash
-Copier le code
+```
+### Validation et rechargement
+```bash
 sudo sshd -t
 sudo systemctl reload ssh
-Protection contre les attaques – Fail2ban
-Installation
-bash
-Copier le code
+```
+### Protection contre les attaques – Fail2ban
+```bash
 sudo apt install -y fail2ban
-Configuration
-bash
-Copier le code
+```
+### Configuration
+```bash
 sudo cp /etc/fail2ban/jail.conf /etc/fail2ban/jail.local
 sudo nano /etc/fail2ban/jail.local
-Configuration SSH recommandée :
-
-ini
+```
+#### Configuration SSH recommandée :
+```ini
 Copier le code
 [sshd]
 enabled = true
 maxretry = 5
 findtime = 10m
 bantime = 1h
-Redémarrage et vérification
-bash
-Copier le code
+```
+
+### Redémarrage et vérification
+```bash
 sudo systemctl restart fail2ban
 sudo fail2ban-client status sshd
-Structuration du serveur applicatif
-Création de l’arborescence
-bash
-Copier le code
+```
+### Structuration du serveur applicatif
+#### Création de l’arborescence
+```bash
 sudo mkdir -p /opt/app/demoapp
 sudo mkdir -p /logs/app
 sudo chown -R appadmin:appadmin /opt/app /logs/app
-Création du compte applicatif dédié
-bash
-Copier le code
+```
+#### Création du compte applicatif dédié
+```bash
 sudo useradd -r -m -d /opt/app/demoapp -s /usr/sbin/nologin demoapp
 sudo chown -R demoapp:demoapp /opt/app/demoapp
-PostgreSQL
-Installation
-bash
-Copier le code
+```
+## PostgreSQL
+### Installation
+```bash
 sudo apt install -y postgresql postgresql-contrib
 sudo systemctl status postgresql
-Création de l’utilisateur et de la base
-bash
-Copier le code
+```
+### Création de l’utilisateur et de la base
+```bash
 sudo -i -u postgres
 createuser demoapp_user
 createdb demoapp_db -O demoapp_user
@@ -140,12 +147,13 @@ psql
 ALTER USER demoapp_user WITH PASSWORD '********';
 \q
 exit
-Création du schéma
+```
+### Création du schéma
 Connexion :
-
+```
 bash
-Copier le code
 psql -h localhost -U demoapp_user -d demoapp_db
+```
 Table de logs :
 
 sql
