@@ -148,65 +148,62 @@ ALTER USER demoapp_user WITH PASSWORD '********';
 exit
 ```
 ### Création du schéma
-Connexion :
+#### Connexion :
 ```
 bash
 psql -h localhost -U demoapp_user -d demoapp_db
 ```
-Table de logs :
+```sql
 
-sql
-Copier le code
 CREATE TABLE app_logs (
     id SERIAL PRIMARY KEY,
     run_date TIMESTAMP NOT NULL,
     message TEXT NOT NULL
 );
-Déploiement du batch Python
-Installation du driver PostgreSQL
-bash
-Copier le code
+```
+## Déploiement du batch Python
+### Installation du driver PostgreSQL
+```bash
 sudo apt install -y python3-psycopg2
-Droits d’exécution
-bash
-Copier le code
+```
+### Droits d’exécution
+```bash
 chmod +x /opt/app/demoapp/app.py
-Test manuel
-bash
-Copier le code
+```
+### Test manuel
+```bash
 /opt/app/demoapp/app.py
-Externalisation des secrets
-Création du fichier .env
-bash
-Copier le code
+```
+## Externalisation des secrets
+### Création du fichier .env
+```bash
 nano /opt/app/demoapp/.env
-Variables attendues :
-
-env
-Copier le code
+```
+#### Variables attendues :
+```env
 DB_HOST=localhost
 DB_NAME=demoapp_db
 DB_USER=demoapp_user
 DB_PASSWORD=********
-Sécurisation
-bash
-Copier le code
+```
+### Sécurisation
+```bash
 chmod 600 /opt/app/demoapp/.env
 chown demoapp:demoapp /opt/app/demoapp/.env
-Automatisation via cron
-Édition de la crontab du compte applicatif
-bash
-Copier le code
+```
+## Automatisation via cron
+### Édition de la crontab du compte applicatif
+```bash
 sudo crontab -u demoapp -e
-Tâche planifiée
-bash
-Copier le code
+```
+### Tâche planifiée
+```bash
 0 1 * * * export $(grep -v '^#' /opt/app/demoapp/.env | xargs) && /opt/app/demoapp/app.py
+```
 Cette commande charge dynamiquement les variables d’environnement depuis le fichier .env avant l’exécution du batch.
 
-Rappel – Syntaxe cron
-text
-Copier le code
+### Rappel – Syntaxe cron
+```text
 .---------------- minute (0 - 59)
 |  .------------- hour (0 - 23)
 |  |  .---------- day of month (1 - 31)
@@ -214,3 +211,4 @@ Copier le code
 |  |  |  |  .---- day of week (0 - 6)
 |  |  |  |  |
 *  *  *  *  *  command
+```
