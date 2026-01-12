@@ -1,88 +1,138 @@
 # integration-demoapp
-Déployer un batch applicatif Python exécuté via cron et persistant ses données dans PostgreSQL.
-## Stack
-- Ubuntu Server
-- OpenSSH (clé uniquement)
-- Fail2ban
-- PostgreSQL
-- Python 3
 
-## Fonctionnement
-- Exécution quotidienne via cron
-- Connexion DB via variables d’environnement
-- Gestion d’erreurs et rollback
-- Logs persistants
+## Présentation
 
-## Sécurité
-- Comptes nominatifs
-- Comptes applicatifs dédiés
-- SSH par clé
-- Secrets externalisés
+**integration-demoapp** est un projet de démonstration d’intégration applicative visant à déployer un **batch Python automatisé via cron**, sécurisé, et persistant ses données dans une base **PostgreSQL**.
 
-### Mise à jour du système
+Ce projet met en avant des bonnes pratiques d’administration système, de sécurité, et d’exploitation applicative sur un serveur Linux.
+
+---
+
+## Objectifs du projet
+
+- Déployer un batch applicatif Python sur un serveur Linux
+- Automatiser son exécution via `cron`
+- Persister les résultats dans une base PostgreSQL
+- Sécuriser l’accès serveur et applicatif
+- Externaliser les secrets de configuration
+- Garantir la traçabilité via des logs persistants
+
+---
+
+## Stack technique
+
+- **OS** : Ubuntu Server
+- **Accès distant** : OpenSSH (authentification par clé uniquement)
+- **Sécurité** : Fail2ban
+- **Base de données** : PostgreSQL
+- **Langage** : Python 3
+
+---
+
+## Fonctionnement global
+
+- Exécution quotidienne automatisée via `cron`
+- Connexion à la base PostgreSQL via variables d’environnement
+- Gestion des erreurs applicatives
+- Écriture des logs en base de données
+- Séparation claire des comptes système et applicatifs
+
+---
+
+## Sécurité mise en œuvre
+
+- Comptes utilisateurs nominatifs
+- Compte applicatif dédié sans shell
+- Accès SSH par clé uniquement
+- Interdiction de connexion root
+- Secrets externalisés dans un fichier `.env`
+- Protection contre les attaques par force brute (Fail2ban)
+
+---
+
+## Mise à jour du système
+
+```bash
 sudo apt upgrade -y
-
-### Installation et activation de SSH
+Configuration SSH
+Installation et activation
+bash
+Copier le code
 sudo apt install -y openssh-server
 sudo systemctl enable ssh
 sudo systemctl start ssh
-
-#### Génération d’une clé SSH (poste client)
+Génération de clé SSH (poste client)
+bash
+Copier le code
 ssh-keygen -t ed25519 -C "appadmin@integration-demo"
-
-#### Déploiement manuel de la clé sur le serveur
+Déploiement de la clé sur le serveur
+bash
+Copier le code
 mkdir -p ~/.ssh
 chmod 700 ~/.ssh
 nano ~/.ssh/authorized_keys
 chmod 600 ~/.ssh/authorized_keys
-
-#### Durcissement SSH
+Durcissement de la configuration SSH
+bash
+Copier le code
 sudo nano /etc/ssh/sshd_config
+Paramètres à modifier :
 
-##### A modifier :
+ini
+Copier le code
 PasswordAuthentication no
 PermitRootLogin no
 PubkeyAuthentication yes
-
-#### Validation et rechargement :
+Validation et rechargement
+bash
+Copier le code
 sudo sshd -t
 sudo systemctl reload ssh
-
-### Protection contre les attaques (fail2ban)
-
-#### Installation
+Protection contre les attaques – Fail2ban
+Installation
+bash
+Copier le code
 sudo apt install -y fail2ban
-
-#### Configuration
+Configuration
+bash
+Copier le code
 sudo cp /etc/fail2ban/jail.conf /etc/fail2ban/jail.local
 sudo nano /etc/fail2ban/jail.local
+Configuration SSH recommandée :
 
-A modifier:
+ini
+Copier le code
 [sshd]
 enabled = true
 maxretry = 5
 findtime = 10m
 bantime = 1h
-
-#### Redémarrage et vérif
+Redémarrage et vérification
+bash
+Copier le code
 sudo systemctl restart fail2ban
 sudo fail2ban-client status sshd
-
-
-### Structuration du serveur applicatif
-#### Création arborescence
+Structuration du serveur applicatif
+Création de l’arborescence
+bash
+Copier le code
 sudo mkdir -p /opt/app/demoapp
 sudo mkdir -p /logs/app
 sudo chown -R appadmin:appadmin /opt/app /logs/app
-
-#### Création d'un compte dédié
+Création du compte applicatif dédié
+bash
+Copier le code
 sudo useradd -r -m -d /opt/app/demoapp -s /usr/sbin/nologin demoapp
 sudo chown -R demoapp:demoapp /opt/app/demoapp
-
-### PostgreSQL
+PostgreSQL
+Installation
+bash
+Copier le code
 sudo apt install -y postgresql postgresql-contrib
 sudo systemctl status postgresql
-#### Création de l’utilisateur et de la base
+Création de l’utilisateur et de la base
+bash
+Copier le code
 sudo -i -u postgres
 createuser demoapp_user
 createdb demoapp_db -O demoapp_user
@@ -90,131 +140,70 @@ psql
 ALTER USER demoapp_user WITH PASSWORD '********';
 \q
 exit
+Création du schéma
+Connexion :
 
-#### Création du schéma
-Connexion : psql -h localhost -U demoapp_user -d demoapp_db
+bash
+Copier le code
+psql -h localhost -U demoapp_user -d demoapp_db
+Table de logs :
 
+sql
+Copier le code
 CREATE TABLE app_logs (
     id SERIAL PRIMARY KEY,
     run_date TIMESTAMP NOT NULL,
     message TEXT NOT NULL
 );
-
-
-### Déploiement du batch applicatif Python
-Driver PostgreSQL
+Déploiement du batch Python
+Installation du driver PostgreSQL
+bash
+Copier le code
 sudo apt install -y python3-psycopg2
-
-#### Mettre les droits pour rendre executable le script :
+Droits d’exécution
+bash
+Copier le code
 chmod +x /opt/app/demoapp/app.py
-#### Test
+Test manuel
+bash
+Copier le code
 /opt/app/demoapp/app.py
-
-### Externalisation des secrets
-Création .env :
+Externalisation des secrets
+Création du fichier .env
+bash
+Copier le code
 nano /opt/app/demoapp/.env
+Variables attendues :
 
-Variable à modifier dans le .env :
-
+env
+Copier le code
 DB_HOST=localhost
 DB_NAME=demoapp_db
 DB_USER=demoapp_user
 DB_PASSWORD=********
-
-Sécurisation pour le rendre utilisable que pour demoapp :
+Sécurisation
+bash
+Copier le code
 chmod 600 /opt/app/demoapp/.env
 chown demoapp:demoapp /opt/app/demoapp/.env
-
-### Automatisation via cron
-
+Automatisation via cron
+Édition de la crontab du compte applicatif
+bash
+Copier le code
 sudo crontab -u demoapp -e
-
-Dans le fichier :
+Tâche planifiée
+bash
+Copier le code
 0 1 * * * export $(grep -v '^#' /opt/app/demoapp/.env | xargs) && /opt/app/demoapp/app.py
+Cette commande charge dynamiquement les variables d’environnement depuis le fichier .env avant l’exécution du batch.
 
-exemple : 
-### Cron job syntax
-
-## Cron job syntax
-
-```md
-<pre>
+Rappel – Syntaxe cron
+text
+Copier le code
 .---------------- minute (0 - 59)
 |  .------------- hour (0 - 23)
 |  |  .---------- day of month (1 - 31)
-|  |  |  .------- month (1 - 12) OR jan,feb,mar,apr...
-|  |  |  |  .---- day of week (0 - 6) (Sunday=0 or 7)
+|  |  |  .------- month (1 - 12)
+|  |  |  |  .---- day of week (0 - 6)
 |  |  |  |  |
-*  *  *  *  *  command to be executed
-</pre>
-
-(grep -v '^#' /opt/app/demoapp/.env | xargs)
-Cette commande permet de charger les variables d’environnement depuis un fichier .env, en excluant les lignes de commentaires, afin de les rendre disponibles pour l’exécution du batch.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+*  *  *  *  *  command
