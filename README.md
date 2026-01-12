@@ -107,7 +107,6 @@ sudo nano /etc/fail2ban/jail.local
 ```
 #### Configuration SSH recommandée :
 ```ini
-Copier le code
 [sshd]
 enabled = true
 maxretry = 5
