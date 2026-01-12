@@ -195,6 +195,10 @@ CREATE TABLE app_logs (
 ## Déploiement du batch Python
 Le batch Python constitue le cœur applicatif du projet. Il est conçu pour s’exécuter de manière autonome et interagir avec la base PostgreSQL.
 
+### Fonctionnement du batch Python
+Le batch Python est responsable de l’exécution applicative automatisée.
+À chaque lancement, il se connecte à la base PostgreSQL en utilisant des variables d’environnement, enregistre une trace d’exécution et remonte une erreur explicite en cas d’échec.
+
 ### Installation du driver PostgreSQL
 ```bash
 sudo apt install -y python3-psycopg2
