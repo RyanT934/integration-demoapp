@@ -245,7 +245,7 @@ chown demoapp:demoapp /opt/app/demoapp/.env
 ```
 
 ## Automatisation via cron
-Les permissions du fichier .env sont volontairement restrictives pour empêcher tout accès non autorisé aux secrets applicatifs.
+L’exécution du batch est automatisée à l’aide de cron, permettant un fonctionnement régulier et sans intervention humaine.
 
 ### Édition de la crontab du compte applicatif
 
